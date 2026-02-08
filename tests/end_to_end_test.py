@@ -1,4 +1,4 @@
 import pytest
 
-def test_homepage():
-    # Add end-to-end test code here
+def test_full_app_workflow():
+    # Implement end-to-end test steps
