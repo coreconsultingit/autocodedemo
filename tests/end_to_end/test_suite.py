@@ -1,10 +1,10 @@
-import pytest
+import unittest
 
-def test_homepage():
-    assert True
+class EndToEndTests(unittest.TestCase):
+    def test_login(self):
+        # Add end-to-end test for login functionality
+        pass
 
-def test_login():
-    assert True
-
-def test_logout():
-    assert True
+    def test_create_issue(self):
+        # Add end-to-end test for creating a new issue
+        pass
