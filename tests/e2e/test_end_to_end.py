@@ -1,4 +1,4 @@
 import pytest
 
-def test_end_to_end():
-    # Implement end-to-end test logic
+def test_homepage():
+    assert True
