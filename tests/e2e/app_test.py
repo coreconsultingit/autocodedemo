@@ -1,4 +1,4 @@
 import pytest
 
-def test_app():
-    # new end-to-end test
+def test_homepage():
+    # Add end-to-end test steps here
