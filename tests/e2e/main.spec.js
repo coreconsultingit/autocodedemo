@@ -1,9 +1,9 @@
-describe('Main user flow', () => {
-  it('should display homepage', () => {
-    // Implement e2e test for homepage
+describe('Main Page', () => {
+  it('should display the correct title', () => {
+    // Test case to validate the page title
   });
 
-  it('should complete checkout', () => {
-    // Implement e2e test for checkout process
+  it('should allow user to login', () => {
+    // Test case to validate the login functionality
   });
 });
