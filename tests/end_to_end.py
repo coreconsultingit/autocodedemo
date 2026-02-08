@@ -1,10 +1,10 @@
 import unittest
 
 class EndToEndTests(unittest.TestCase):
-    def test_login(self):
-        # Add end-to-end test for login functionality
+    def test_feature_a(self):
+        # Implement end-to-end test for feature A
         pass
 
-    def test_create_item(self):
-        # Add end-to-end test for creating an item
+    def test_feature_b(self):
+        # Implement end-to-end test for feature B
         pass
