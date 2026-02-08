@@ -1,8 +1,9 @@
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@radix-ui/react-dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@radix-ui/react-tooltip';
 
 export default function Home() {
   return (
-    <div>
+    <div className="p-4">
       <DropdownMenu>
         <DropdownMenuTrigger>Open</DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -10,6 +11,11 @@ export default function Home() {
           <DropdownMenuItem>Option 2</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Tooltip>
+        <TooltipTrigger>Hover for info</TooltipTrigger>
+        <TooltipContent>This is a tooltip</TooltipContent>
+      </Tooltip>
     </div>
   );
 }
