@@ -1,5 +1,4 @@
 import pytest
 
-def test_deployment():
-    # end-to-end test logic
+def test_something():
     assert 1 == 1
