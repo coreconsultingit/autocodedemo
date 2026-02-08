@@ -1,2 +1,2 @@
-# UI Codebase
-This folder contains the frontend code for the application.
+# Front-end Application
+Built with React, Vite, Shadcn UI, and Tailwind CSS.
