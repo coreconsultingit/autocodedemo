@@ -1,4 +1,5 @@
-import pytest
+import unittest
 
-def test_end_to_end():
-    assert True
+class EndToEndTest(unittest.TestCase):
+    def test_happy_path(self):
+        # implement end-to-end test
