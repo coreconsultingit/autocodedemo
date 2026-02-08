@@ -1,10 +1,7 @@
-import unittest
+import pytest
 
-class EndToEndTests(unittest.TestCase):
-    def test_login(self):
-        # Add login test case
-        pass
+def test_signup_flow():
+    ...
 
-    def test_create_account(self):
-        # Add create account test case
-        pass
+def test_login_flow():
+    ...
