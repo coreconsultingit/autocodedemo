@@ -1,14 +1,1 @@
-
-import React from 'react';
-
-const HomePage = () => {
-  return (
-    <div className="bg-gray-100 py-10">
-      <div className="bg-blue-500 text-white px-4 py-2 rounded-md inline-block">
-        auto-code-deploy
-      </div>
-    </div>
-  );
-};
-
-export default HomePage;
+<div className='bg-[#e9e9e9] px-4 py-2 rounded-md text-sm font-medium text-gray-900 inline-block'>auto-code-deploy</div>
