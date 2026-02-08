@@ -1,5 +1,7 @@
-describe('End-to-end test suite', () => {
-  it('should validate deployment after merge', () => {
-    // Add test cases
-  });
+const { test } = require('playwright');
+
+test('Navigate to homepage', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForSelector('h1');
+  await expect(page.title()).resolves.toMatch('My App');
 });
