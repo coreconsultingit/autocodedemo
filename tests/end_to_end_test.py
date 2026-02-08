@@ -1,4 +1,4 @@
 import pytest
 
-def test_homepage():
-    # Add end-to-end test case
+def test_deployment():
+    # Implement end-to-end test logic
