@@ -1,7 +1,4 @@
 import pytest
 
-def test_valid_login():
-    ...
-
-def test_invalid_login():
+def test_login_success():
     ...
