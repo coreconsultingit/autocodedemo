@@ -1,4 +1,7 @@
-import pytest
+import unittest
+from app import App
 
-def test_homepage():
-    pass
+class EndToEndTest(unittest.TestCase):
+    def test_app_workflow(self):
+        app = App()
+        self.assertTrue(app.run())
