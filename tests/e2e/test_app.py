@@ -1,4 +1,4 @@
 import pytest
 
-def test_app_functionality():
-    ...
+def test_app_flow():
+    # Implement end-to-end test steps
