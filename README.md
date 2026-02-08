@@ -1,3 +1,6 @@
-# AUT-1
+# AUT-1 Test auto code issue
 
-This project includes a React frontend with Vite, Shadcn, and Tailwind CSS, and a backend API folder.
+## Project Setup
+- React with Vite
+- Shadcn UI
+- Tailwind CSS
