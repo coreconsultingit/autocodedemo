@@ -1,4 +1,4 @@
 import pytest
 
-def test_homepage():
-    assert True
+def test_app_functionality():
+    # Implement end-to-end test
