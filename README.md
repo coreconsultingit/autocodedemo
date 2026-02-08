@@ -1,10 +1,3 @@
-# AUT-1 Test auto code issue
+# AUT-1
 
-## Project Setup
-
-- Frontend: React with Vite
-- UI Library: Shadcn
-- CSS Framework: Tailwind
-- Folder Structure:
-  - `ui/`: Front-end code
-  - `api/`: Backend API calls
+This project includes a React frontend with Vite, Shadcn, and Tailwind CSS, and a backend API folder.
