@@ -1,10 +1,14 @@
 
-import { Label } from '@/components/ui/label';
+import React from 'react';
 
-export default function Home() {
+const HomePage = () => {
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Label className="bg-blue-500 text-white px-4 py-2">auto-code-deploy</Label>
+    <div className="bg-gray-100 py-10">
+      <div className="bg-blue-500 text-white px-4 py-2 rounded-md inline-block">
+        auto-code-deploy
+      </div>
     </div>
   );
-}
+};
+
+export default HomePage;
