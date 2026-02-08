@@ -1,10 +1,11 @@
 
-import Image from 'next/image';
+import Image from 'next/image'
+import { Container } from '@radix-ui/react-layout'
 
 export default function Home() {
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Image src="/hero-image.jpg" alt="Hero Image" width={800} height={600} />
-    </div>
-  );
+    <Container>
+      <Image src='/hero-image.jpg' alt='Hero Image' width={1200} height={800} />
+    </Container>
+  )
 }
