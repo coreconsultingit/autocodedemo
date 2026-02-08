@@ -1,10 +1,22 @@
-import { Dialog, DropdownMenu } from '@radix-ui/react-components';
+import { Dropdown, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
 
-function HomePage() {
+export default function Home() {
   return (
-    <div className="bg-gray-100 p-4">
-      <Dialog />
-      <DropdownMenu />
+    <div className="p-4">
+      <Dropdown>
+        <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
+        <DropdownMenu>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Option 1</DropdownMenuItem>
+            <DropdownMenuItem>Option 2</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Dropdown>
+      <Dialog>
+        <DialogTrigger>Open Dialog</DialogTrigger>
+        <DialogContent>Hello, world!</DialogContent>
+      </Dialog>
     </div>
   );
 }
