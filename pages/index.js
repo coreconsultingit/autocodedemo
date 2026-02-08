@@ -1,11 +1,9 @@
-
-import Image from 'next/image'
-import { Container } from '@radix-ui/react-layout'
+import Image from 'next/image';
 
 export default function Home() {
   return (
-    <Container>
-      <Image src='/hero-image.jpg' alt='Hero Image' width={1200} height={800} />
-    </Container>
-  )
+    <div>
+      <Image src="/hero-image.jpg" alt="Hero Image" width={1920} height={1080} />
+    </div>
+  );
 }
