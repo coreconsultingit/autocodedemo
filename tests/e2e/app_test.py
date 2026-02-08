@@ -1,4 +1,5 @@
-import pytest
+import unittest
 
-def test_homepage():
-    ...
+class AppTest(unittest.TestCase):
+    def test_homepage(self):
+        ...
