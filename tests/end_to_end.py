@@ -1,5 +1,10 @@
 import unittest
 
-class EndToEndTest(unittest.TestCase):
-    def test_deployment(self):
-        # Add end-to-end test logic
+class EndToEndTests(unittest.TestCase):
+    def test_login(self):
+        # Add login test case
+        pass
+
+    def test_create_account(self):
+        # Add create account test case
+        pass
