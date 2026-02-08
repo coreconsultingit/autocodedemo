@@ -1,10 +1,15 @@
 
 import Image from 'next/image';
 
-export default function HomePage() {
+export default function Home() {
   return (
     <div>
-      <Image src="/hero-image.jpg" alt="Hero Image" width={1200} height={600} />
+      <Image
+        src='https://example.com/image.jpg'
+        alt='Example Image'
+        width={800}
+        height={600}
+      />
     </div>
   );
 }
