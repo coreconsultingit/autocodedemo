@@ -1,8 +1,4 @@
-# AUT-1: Test auto code issue
+# AUT-1 - Test auto code issue
 
-## Frontend
-- Built with Vite, React, Shadcn, Tailwind CSS
-- `ui/` folder contains frontend code
-
-## Backend
-- `api/` folder contains backend API code
+## Description
+Create a front-end in React with Vite, Shadcn, and Tailwind CSS. The backend API calls will be in the 'api' folder. Use best programming and design practices.
