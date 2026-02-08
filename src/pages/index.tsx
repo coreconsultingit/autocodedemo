@@ -1,13 +1,12 @@
 
-import { Button } from 'tailwindcss-react-ui'
+import { useState } from 'react';
 
 export default function Home() {
   return (
-    <div>
-      <div className="bg-blue-500 text-white px-4 py-2 rounded-md">
-        auto-code-deploy
+    <div className="flex justify-center items-center h-screen">
+      <div className="bg-[#F5F5F5] px-6 py-4 rounded-lg">
+        <span className="bg-[#E5E5E5] px-2 py-1 rounded text-[#333333] font-medium">auto-code-deploy</span>
       </div>
-      <Button>Click me</Button>
     </div>
-  )
+  );
 }
