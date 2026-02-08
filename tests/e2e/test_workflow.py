@@ -1,10 +1,5 @@
-import pytest
+import unittest
 
-def test_login():
-    ...
-
-def test_create_issue():
-    ...
-
-def test_update_issue():
-    ...
+class WorkflowTests(unittest.TestCase):
+    def test_happy_path(self):
+        # Implement end-to-end test scenario
