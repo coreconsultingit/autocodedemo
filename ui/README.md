@@ -1,1 +1,2 @@
-# UI
+# UI Codebase
+This folder contains the frontend code for the application.
