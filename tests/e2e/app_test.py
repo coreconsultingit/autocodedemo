@@ -1,10 +1,4 @@
-import unittest
+import pytest
 
-class AppTest(unittest.TestCase):
-    def test_homepage(self):
-        # Add end-to-end test for homepage
-        pass
-
-    def test_login(self):
-        # Add end-to-end test for login flow
-        pass
+def test_app():
+    # new end-to-end test
