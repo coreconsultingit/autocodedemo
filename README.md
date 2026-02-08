@@ -1,6 +1,4 @@
-# AUT-1 Test auto code issue
+# AUT-1: Test auto code issue
 
-## Project Setup
-
-- Front-end: Vite React, Shadcn UI, Tailwind CSS
-- Back-end: TBD
+## Summary
+Initialize a new Vite React project with Shadcn UI and Tailwind CSS. Create 'ui' and 'api' folders for frontend and backend code, following best practices.
