@@ -1,14 +1,10 @@
-import unittest
+import pytest
 
-class TestSuite(unittest.TestCase):
-    def test_login(self):
-        # Implement login test case
-        pass
+def test_homepage():
+    ...
 
-    def test_create_issue(self):
-        # Implement create issue test case
-        pass
+def test_login():
+    ...
 
-    def test_close_issue(self):
-        # Implement close issue test case
-        pass
+def test_deployment():
+    ...
