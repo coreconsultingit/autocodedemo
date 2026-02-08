@@ -1,7 +1,5 @@
-import { ... } from './utils'
-
-describe('End-to-End Tests', () => {
-  it('should validate deployment', () => {
-    // Add e2e test logic
-  })
-})
+describe('end-to-end test', () => {
+  it('should pass after deployment', () => {
+    // add test logic
+  });
+});
