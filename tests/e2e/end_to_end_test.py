@@ -1,10 +1,10 @@
-import unittest
+import pytest
 
-class EndToEndTest(unittest.TestCase):
-    def test_login(self):
-        # Add end-to-end test for login functionality
-        pass
+def test_login():
+    ...
 
-    def test_logout(self):
-        # Add end-to-end test for logout functionality
-        pass
+def test_create_issue():
+    ...
+
+def test_comment_issue():
+    ...
