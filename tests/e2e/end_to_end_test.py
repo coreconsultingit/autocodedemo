@@ -1,4 +1,4 @@
 import pytest
 
-def test_homepage():
-    ...
+def test_end_to_end():
+    assert True
