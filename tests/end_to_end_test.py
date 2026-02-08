@@ -1,5 +1,4 @@
-import unittest
+import pytest
 
-class EndToEndTest(unittest.TestCase):
-    def test_some_feature(self):
-        # Implement end-to-end test logic
+def test_homepage():
+    # Add end-to-end test case
