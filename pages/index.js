@@ -1,22 +1,10 @@
-import { Dropdown, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
+import React from 'react';
+import axios from 'axios';
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="p-4">
-      <Dropdown>
-        <DropdownMenuTrigger>Open Menu</DropdownMenuTrigger>
-        <DropdownMenu>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Option 1</DropdownMenuItem>
-            <DropdownMenuItem>Option 2</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </Dropdown>
-      <Dialog>
-        <DialogTrigger>Open Dialog</DialogTrigger>
-        <DialogContent>Hello, world!</DialogContent>
-      </Dialog>
+    <div>
+      <h1>Welcome to the web app!</h1>
     </div>
   );
 }
