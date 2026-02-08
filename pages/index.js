@@ -1,13 +1,18 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@radix-ui/react-dropdown-menu';
+import { Button } from '../components/ui/Button';
 
 export default function Home() {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>Open</DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem>Option 1</DropdownMenuItem>
-        <DropdownMenuItem>Option 2</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="p-4">
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Button>Open</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Option 1</DropdownMenuItem>
+          <DropdownMenuItem>Option 2</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
