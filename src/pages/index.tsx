@@ -1,9 +1,16 @@
-import Image from 'next/image';
 
-export default function Home() {
+import React from 'react';
+
+const HomePage = () => {
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Image src="/hero-image.jpg" alt="Hero Image" width={800} height={600} />
+    <div className="bg-gray-100 py-16">
+      <div className="container mx-auto">
+        <div className="bg-blue-500 text-white px-4 py-2 rounded-md inline-block">
+          auto-code-deploy
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default HomePage;
