@@ -1,0 +1,99 @@
+name: Claude Code Implementation
+
+on:
+  repository_dispatch:
+    types: [implement-jira-issue]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Create feature branch
+        run: |
+          git config user.name "Claude Code Bot"
+          git config user.email "claude-bot@coreconsultingit.com"
+
+          ISSUE_KEY="${{ github.event.client_payload.issue_key }}"
+          SUMMARY="${{ github.event.client_payload.summary }}"
+          BRANCH_NAME="feature/${ISSUE_KEY}-$(echo "$SUMMARY" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | cut -c1-40)"
+
+          git checkout -b "$BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          echo "ISSUE_KEY=$ISSUE_KEY" >> $GITHUB_ENV
+
+      - name: Run Claude Code
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          cat > /tmp/prompt.txt << 'EOF'
+          Implement this Jira issue:
+
+          Issue: ${{ github.event.client_payload.issue_key }}
+          Summary: ${{ github.event.client_payload.summary }}
+          Description: ${{ github.event.client_payload.description }}
+
+          Instructions:
+          - Review the codebase first
+          - Make minimal, focused changes
+          - Follow existing patterns
+          - Ensure code is production-ready
+          EOF
+
+          claude --print "$(cat /tmp/prompt.txt)" \
+            --allowedTools "View,Edit,Write,Glob,Grep,Bash(npm:*),Bash(npx:*)" \
+            --max-turns 20 \
+            -y
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and Push
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git add -A
+          git commit -m "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}"
+          git push -u origin "${{ env.BRANCH_NAME }}"
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}" \
+            --body "## Jira Issue
+          ${{ github.event.client_payload.issue_key }}
+
+          ## Description
+          ${{ github.event.client_payload.description }}
+
+          ---
+          *Implemented by Claude Code*" \
+            --base main
+
+      - name: Report no changes
+        if: steps.changes.outputs.has_changes == 'false'
+        run: echo "::warning::No changes made for ${{ env.ISSUE_KEY }}"
