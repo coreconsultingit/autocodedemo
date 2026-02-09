@@ -1,0 +1,1 @@
+<div className='bg-blue-500 px-4 py-2 rounded text-white font-bold'>auto-code-deploy</div>
