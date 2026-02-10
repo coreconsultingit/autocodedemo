@@ -62,10 +62,10 @@ jobs:
           - Ensure code is production-ready
           EOF
 
-          claude --print "$(cat /tmp/prompt.txt)" \
+          claude "$(cat /tmp/prompt.txt)" \
             --allowedTools "View,Edit,Write,Glob,Grep,Bash(npm:*),Bash(npx:*)" \
             --max-turns 25 \
-            -y
+            --dangerously-skip-permissions
 
       - name: Check for changes
         id: changes
