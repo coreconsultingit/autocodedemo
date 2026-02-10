@@ -60,6 +60,7 @@ jobs:
           - Make minimal, focused changes
           - Use Tailwind CSS for styling
           - Ensure code is production-ready
+          - NEVER modify files in .github/ folder (workflows, etc.)
           EOF
 
           claude -p "$(cat /tmp/prompt.txt)" \
