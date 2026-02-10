@@ -62,8 +62,8 @@ jobs:
           - Ensure code is production-ready
           EOF
 
-          claude "$(cat /tmp/prompt.txt)" \
-            --allowedTools "View,Edit,Write,Glob,Grep,Bash(npm:*),Bash(npx:*)" \
+          claude -p "$(cat /tmp/prompt.txt)" \
+            --allowedTools Read Edit Glob Grep "Bash(npm:*)" "Bash(npx:*)" \
             --max-turns 25 \
             --dangerously-skip-permissions
 
