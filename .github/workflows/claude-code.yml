@@ -49,16 +49,22 @@ jobs:
           Summary: ${{ github.event.client_payload.summary }}
           Description: ${{ github.event.client_payload.description }}
 
+          Project Structure:
+          - ui/           → Frontend React/Next.js code (components, pages, styles)
+          - api/          → Backend API code
+          - tests/        → Test files
+
           Instructions:
-          - Review the codebase first
+          - Put all frontend code in the ui/ folder
+          - Review existing code patterns first
           - Make minimal, focused changes
-          - Follow existing patterns
+          - Use Tailwind CSS for styling
           - Ensure code is production-ready
           EOF
 
           claude --print "$(cat /tmp/prompt.txt)" \
             --allowedTools "View,Edit,Write,Glob,Grep,Bash(npm:*),Bash(npx:*)" \
-            --max-turns 20 \
+            --max-turns 25 \
             -y
 
       - name: Check for changes
