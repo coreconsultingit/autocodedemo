@@ -22,8 +22,13 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@0.2
 
       - name: Create feature branch
         run: |
@@ -34,37 +39,109 @@ jobs:
           SUMMARY="${{ github.event.client_payload.summary }}"
           BRANCH_NAME="feature/${ISSUE_KEY}-$(echo "$SUMMARY" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | cut -c1-40)"
 
-          git checkout -b "$BRANCH_NAME"
+          # Check if branch already exists on remote
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+            echo "Branch $BRANCH_NAME already exists on remote, fetching and checking out"
+            git fetch origin "$BRANCH_NAME"
+            git checkout -b "$BRANCH_NAME" "origin/$BRANCH_NAME"
+          else
+            git checkout -b "$BRANCH_NAME"
+          fi
+
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
           echo "ISSUE_KEY=$ISSUE_KEY" >> $GITHUB_ENV
+
+      - name: Restore .NET dependencies
+        run: |
+          if [ -f api/Api.sln ]; then
+            dotnet restore api/Api.sln
+          fi
+
+      - name: Build context pack
+        run: |
+          SUMMARY="${{ github.event.client_payload.summary }}"
+          DESCRIPTION="${{ github.event.client_payload.description }}"
+          ISSUE_TEXT="$SUMMARY $DESCRIPTION"
+
+          cat > /tmp/context.md << 'CTXEOF'
+          # Repository Context
+
+          ## Project Structure
+          CTXEOF
+
+          # Map key directories
+          echo '```' >> /tmp/context.md
+          echo "ui/" >> /tmp/context.md
+          ls ui/src/ 2>/dev/null | head -20 | sed 's/^/  ui\/src\//' >> /tmp/context.md
+          ls ui/src/components/ 2>/dev/null | head -20 | sed 's/^/  ui\/src\/components\//' >> /tmp/context.md
+          ls ui/src/pages/ 2>/dev/null | head -20 | sed 's/^/  ui\/src\/pages\//' >> /tmp/context.md
+          echo "" >> /tmp/context.md
+          echo "api/" >> /tmp/context.md
+          find api/ -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' 2>/dev/null | head -20 | sed 's/^/  /' >> /tmp/context.md
+          echo '```' >> /tmp/context.md
+
+          # Detect target folder based on issue keywords
+          TARGET="both"
+          if echo "$ISSUE_TEXT" | grep -qiE 'frontend|react|component|page|UI|button|form|style|tailwind|css'; then
+            TARGET="ui"
+          fi
+          if echo "$ISSUE_TEXT" | grep -qiE 'backend|api|endpoint|database|server|\.net|controller|model'; then
+            TARGET="api"
+          fi
+          echo "" >> /tmp/context.md
+          echo "## Likely Target: \`$TARGET\`" >> /tmp/context.md
+
+          # Grep for potentially related files
+          echo "" >> /tmp/context.md
+          echo "## Possibly Related Files" >> /tmp/context.md
+          echo '```' >> /tmp/context.md
+          # Extract keywords from summary (words > 3 chars, skip common words)
+          KEYWORDS=$(echo "$SUMMARY" | tr '[:upper:]' '[:lower:]' | grep -oE '[a-z]{4,}' | grep -vE '^(this|that|with|from|have|been|will|should|could|would|into|also|each|when|then|than|them|they|their|make|just|only|some|more|most|such|like|over|after|before|about|between|through|during|without|within|implement|create|update|add|fix|change|build|ensure|using)$' | head -5)
+          for kw in $KEYWORDS; do
+            grep -rlE "$kw" ui/src/ api/ 2>/dev/null | grep -vE 'node_modules|\.git|obj/|bin/' | head -5
+          done | sort -u >> /tmp/context.md
+          echo '```' >> /tmp/context.md
+
+          # Coding conventions
+          cat >> /tmp/context.md << 'CONVEOF'
+
+          ## Coding Conventions
+          - **Frontend**: React + Vite + Tailwind CSS. Components in `ui/src/components/`.
+          - **Backend**: .NET 9 minimal API. Code in `api/`.
+          - **Do NOT modify**: `.github/` folder, workflow files, config files at repo root.
+          - **Styling**: Use Tailwind CSS utility classes, not custom CSS.
+          CONVEOF
+
+          echo "Context pack built:"
+          cat /tmp/context.md
 
       - name: Run Claude Code
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          cat > /tmp/prompt.txt << 'EOF'
+          CONTEXT=$(cat /tmp/context.md)
+
+          cat > /tmp/prompt.txt << PROMPTEOF
           Implement this Jira issue:
 
           Issue: ${{ github.event.client_payload.issue_key }}
           Summary: ${{ github.event.client_payload.summary }}
           Description: ${{ github.event.client_payload.description }}
 
-          Project Structure:
-          - ui/           → Frontend React/Next.js code (components, pages, styles)
-          - api/          → Backend API code
-          - tests/        → Test files
+          ${CONTEXT}
 
           Instructions:
           - Put all frontend code in the ui/ folder
+          - Put all backend code in the api/ folder
           - Review existing code patterns first
           - Make minimal, focused changes
           - Use Tailwind CSS for styling
           - Ensure code is production-ready
           - NEVER modify files in .github/ folder (workflows, etc.)
-          EOF
+          PROMPTEOF
 
           claude -p "$(cat /tmp/prompt.txt)" \
-            --allowedTools Read Edit Glob Grep "Bash(npm:*)" "Bash(npx:*)" \
+            --allowedTools Read Edit Glob Grep "Bash(npm:*)" "Bash(npx:*)" "Bash(dotnet:*)" \
             --max-turns 25 \
             --dangerously-skip-permissions
 
@@ -77,11 +154,86 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Build and Test
+        if: steps.changes.outputs.has_changes == 'true'
+        id: quality
+        run: |
+          CHECKS_LOG=""
+          CHECKS_PASSED=true
+
+          # UI checks
+          if [ -f ui/package.json ]; then
+            echo "::group::Install UI dependencies"
+            if ! npm --prefix ui ci 2>&1 | tee /tmp/install.log; then
+              CHECKS_LOG+=$'\n### npm install\n```\n'"$(tail -20 /tmp/install.log)"$'\n```'
+              CHECKS_PASSED=false
+            fi
+            echo "::endgroup::"
+
+            echo "::group::Build UI"
+            if ! npm --prefix ui run build 2>&1 | tee /tmp/build.log; then
+              CHECKS_LOG+=$'\n### Build\n```\n'"$(tail -20 /tmp/build.log)"$'\n```'
+              CHECKS_PASSED=false
+            fi
+            echo "::endgroup::"
+
+            # Only run lint if script is defined
+            if node -e "process.exit(require('./ui/package.json').scripts.lint ? 0 : 1)" 2>/dev/null; then
+              echo "::group::Lint UI"
+              if npm --prefix ui run lint 2>&1 | tee /tmp/lint.log; then
+                :
+              else
+                CHECKS_LOG+=$'\n### Lint\n```\n'"$(tail -20 /tmp/lint.log)"$'\n```'
+                CHECKS_PASSED=false
+              fi
+              echo "::endgroup::"
+            fi
+
+            # Only run test if script is defined
+            if node -e "process.exit(require('./ui/package.json').scripts.test ? 0 : 1)" 2>/dev/null; then
+              echo "::group::Test UI"
+              if npm --prefix ui run test -- --runInBand 2>&1 | tee /tmp/test.log; then
+                :
+              else
+                CHECKS_LOG+=$'\n### Tests\n```\n'"$(tail -20 /tmp/test.log)"$'\n```'
+                CHECKS_PASSED=false
+              fi
+              echo "::endgroup::"
+            fi
+          fi
+
+          # API checks (.NET)
+          if [ -f api/Api.sln ]; then
+            echo "::group::Build API"
+            if ! dotnet build api/Api.sln --no-restore 2>&1 | tee /tmp/dotnet-build.log; then
+              CHECKS_LOG+=$'\n### .NET Build\n```\n'"$(tail -20 /tmp/dotnet-build.log)"$'\n```'
+              CHECKS_PASSED=false
+            fi
+            echo "::endgroup::"
+
+            echo "::group::Test API"
+            if ! dotnet test api/Api.sln --no-build 2>&1 | tee /tmp/dotnet-test.log; then
+              CHECKS_LOG+=$'\n### .NET Tests\n```\n'"$(tail -20 /tmp/dotnet-test.log)"$'\n```'
+              CHECKS_PASSED=false
+            fi
+            echo "::endgroup::"
+          fi
+
+          echo "checks_passed=$CHECKS_PASSED" >> $GITHUB_OUTPUT
+
+          # Save logs for PR body (escape for multiline output)
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "checks_log<<$EOF" >> $GITHUB_OUTPUT
+          echo "$CHECKS_LOG" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
       - name: Commit and Push
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           git add -A
           git commit -m "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}"
+          # Pull remote changes if any, then push
+          git pull --rebase origin "${{ env.BRANCH_NAME }}" 2>/dev/null || true
           git push -u origin "${{ env.BRANCH_NAME }}"
 
       - name: Create Pull Request
@@ -89,17 +241,38 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \
-            --title "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}" \
-            --body "## Jira Issue
+          # Skip if PR already exists for this branch
+          EXISTING_PR=$(gh pr list --head "${{ env.BRANCH_NAME }}" --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR #$EXISTING_PR already exists for branch ${{ env.BRANCH_NAME }}, skipping creation"
+            exit 0
+          fi
+
+          DRAFT_FLAG=""
+          CHECKS_STATUS="All checks passed"
+          if [ "${{ steps.quality.outputs.checks_passed }}" != "true" ]; then
+            DRAFT_FLAG="--draft"
+            CHECKS_STATUS="Some checks failed - opened as draft"
+          fi
+
+          PR_BODY="## Jira Issue
           ${{ github.event.client_payload.issue_key }}
 
           ## Description
           ${{ github.event.client_payload.description }}
 
+          ## Quality Checks
+          ${CHECKS_STATUS}
+          ${{ steps.quality.outputs.checks_log }}
+
           ---
-          *Implemented by Claude Code*" \
-            --base main
+          *Implemented by Claude Code*"
+
+          gh pr create \
+            --title "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}" \
+            --body "$PR_BODY" \
+            --base main \
+            $DRAFT_FLAG
 
       - name: Report no changes
         if: steps.changes.outputs.has_changes == 'false'
