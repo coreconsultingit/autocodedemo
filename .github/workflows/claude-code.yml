@@ -28,7 +28,7 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code@0.2
+        run: npm install -g @anthropic-ai/claude-code@2.1.39
 
       - name: Create feature branch
         run: |
