@@ -255,7 +255,8 @@ jobs:
             CHECKS_STATUS="Some checks failed - opened as draft"
           fi
 
-          PR_BODY="## Jira Issue
+          cat > /tmp/pr_body.md << EOF
+          ## Jira Issue
           ${{ github.event.client_payload.issue_key }}
 
           ## Description
@@ -266,11 +267,12 @@ jobs:
           ${{ steps.quality.outputs.checks_log }}
 
           ---
-          *Implemented by Claude Code*"
+          *Implemented by Claude Code*
+          EOF
 
           gh pr create \
             --title "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}" \
-            --body "$PR_BODY" \
+            --body-file /tmp/pr_body.md \
             --base main \
             $DRAFT_FLAG
 
