@@ -1,9 +1,15 @@
-import { Button } from '@/components/ui/button';
+import Header from './components/Header';
+import Home from './components/home';
+import Footer from './components/Footer';
 
 export default function App() {
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Button>Hello, Vite!</Button>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-grow">
+        <Home />
+      </main>
+      <Footer />
     </div>
   );
 }
