@@ -33,7 +33,7 @@ export default function Header() {
             </div>
 
             <div>
-              <h1 className="text-xl font-bold">AutoCode Demo</h1>
+              <h1 className="text-xl font-bold">AutoCodeDeploy</h1>
               <p className="text-xs text-blue-100">AI Rules the Future</p>
             </div>
           </div>
