@@ -9,12 +9,34 @@ permissions:
   pull-requests: write
 
 jobs:
+  # Quick check: skip if a PR already exists for this issue
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.dedup.outputs.should_run }}
+    steps:
+      - name: Check for existing PR
+        id: dedup
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_KEY="${{ github.event.client_payload.issue_key }}"
+          existing_pr=$(gh pr list --repo "${{ github.repository }}" --state open --head "feature/${ISSUE_KEY}" --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$existing_pr" ]; then
+            echo "::notice::PR #${existing_pr} already exists for ${ISSUE_KEY}. Skipping."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+
   implement:
+    needs: preflight
+    if: needs.preflight.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
       group: claude-${{ github.event.client_payload.issue_key }}
-      cancel-in-progress: true
+      cancel-in-progress: false
 
     steps:
       - name: Checkout
@@ -98,7 +120,6 @@ jobs:
           echo "" >> /tmp/context.md
           echo "## Possibly Related Files" >> /tmp/context.md
           echo '```' >> /tmp/context.md
-          # Extract keywords from summary (words > 3 chars, skip common words)
           KEYWORDS=$(echo "$SUMMARY" | tr '[:upper:]' '[:lower:]' | grep -oE '[a-z]{4,}' | grep -vE '^(this|that|with|from|have|been|will|should|could|would|into|also|each|when|then|than|them|they|their|make|just|only|some|more|most|such|like|over|after|before|about|between|through|during|without|within|implement|create|update|add|fix|change|build|ensure|using)$' | head -5)
           for kw in $KEYWORDS; do
             grep -rlE "$kw" ui/src/ api/ 2>/dev/null | grep -vE 'node_modules|\.git|obj/|bin/' | head -5
@@ -125,22 +146,38 @@ jobs:
           CONTEXT=$(cat /tmp/context.md)
 
           cat > /tmp/prompt.txt << PROMPTEOF
-          Implement this Jira issue:
+          You are an autonomous coding agent working in this repository.
 
-          Issue: ${{ github.event.client_payload.issue_key }}
-          Summary: ${{ github.event.client_payload.summary }}
-          Description: ${{ github.event.client_payload.description }}
+          Goal
+          - Implement the Jira ticket exactly. Keep the change minimal and focused.
+
+          Ticket
+          - Key: ${{ github.event.client_payload.issue_key }}
+          - Summary: ${{ github.event.client_payload.summary }}
+          - Description: ${{ github.event.client_payload.description }}
 
           ${CONTEXT}
 
-          Instructions:
-          - Put all frontend code in the ui/ folder
-          - Put all backend code in the api/ folder
-          - Review existing code patterns first
-          - Make minimal, focused changes
-          - Use Tailwind CSS for styling
-          - Ensure code is production-ready
-          - NEVER modify files in .github/ folder (workflows, etc.)
+          Rules (must follow)
+          1) Do NOT modify: .github/, .gitignore, infra/, terraform/, helm/, k8s/, pipelines/, secrets/, *.pem, *.pfx, *.key, *.crt
+          2) Prefer smallest diff. Avoid refactors unless required.
+          3) Follow existing patterns in this repo (naming, folder structure, error handling).
+          4) Add/adjust tests for the change (unit/integration as appropriate).
+          5) If anything is unclear, choose the safest assumption and document it in a code comment.
+          6) Ensure lint and tests pass.
+          7) Use Tailwind CSS for styling in the frontend.
+
+          Process (do this in order)
+          A) Identify relevant files (list them) and briefly explain why.
+          B) Make the change.
+          C) Update/add tests.
+          D) Run the repo checks:
+             - Frontend: npm --prefix ui run lint && npm --prefix ui run build (if ui/ touched)
+             - Backend: dotnet build api/Api.sln && dotnet test api/Api.sln (if api/ touched)
+          E) Summarize what changed + files edited + how to verify.
+
+          Output
+          - Do the work directly in the repo. Do not ask questions. Produce a working implementation.
           PROMPTEOF
 
           claude -p "$(cat /tmp/prompt.txt)" \
@@ -232,7 +269,7 @@ jobs:
 
           echo "checks_passed=$CHECKS_PASSED" >> $GITHUB_OUTPUT
 
-          # Save logs for PR body (escape for multiline output)
+          # Save logs for PR body
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "checks_log<<$EOF" >> $GITHUB_OUTPUT
           echo "$CHECKS_LOG" >> $GITHUB_OUTPUT
@@ -243,7 +280,6 @@ jobs:
         run: |
           git add -A
           git commit -m "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}"
-          # Pull remote changes if any, then push
           git pull --rebase origin "${{ env.BRANCH_NAME }}" 2>/dev/null || true
           git push -u origin "${{ env.BRANCH_NAME }}"
 
@@ -253,7 +289,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          # Skip if PR already exists for this branch
           EXISTING_PR=$(gh pr list --head "${{ env.BRANCH_NAME }}" --json url --jq '.[0].url' 2>/dev/null || true)
           if [ -n "$EXISTING_PR" ]; then
             echo "PR already exists: $EXISTING_PR"
@@ -314,7 +349,6 @@ jobs:
       - name: Notify Jira - PR merged
         if: steps.changes.outputs.has_changes == 'true' && github.event.client_payload.auto_merge == true && steps.quality.outputs.checks_passed == 'true'
         run: |
-          # Wait briefly for merge to complete
           sleep 10
           curl -sf -X POST "${{ secrets.ORCHESTRATOR_URL }}/callback/workflow" \
             -H "Content-Type: application/json" \
