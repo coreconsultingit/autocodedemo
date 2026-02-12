@@ -6,4 +6,4 @@
 - Tailwind CSS
 
 ## Backend
-- API calls in 'api/' folder
+- API calls in 'api/' folder (not currently used)
