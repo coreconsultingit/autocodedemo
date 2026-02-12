@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About Section */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">About AutoCode</h3>
+            <h3 className="text-white font-bold text-lg mb-4">About AutoCodeDeploy</h3>
             <p className="text-sm leading-relaxed">
               Empowering developers with AI-driven automation.
               Building the future of intelligent code generation and deployment.
@@ -76,7 +76,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-6 text-sm text-center">
-          <p>&copy; {currentYear} AutoCode Demo. All rights reserved. Powered by AI.</p>
+          <p>&copy; {currentYear} AutoCodeDeploy. All rights reserved. Powered by AI.</p>
         </div>
       </div>
     </footer>
