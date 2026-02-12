@@ -146,22 +146,38 @@ jobs:
           CONTEXT=$(cat /tmp/context.md)
 
           cat > /tmp/prompt.txt << PROMPTEOF
-          Implement this Jira issue:
+          You are an autonomous coding agent working in this repository.
 
-          Issue: ${{ github.event.client_payload.issue_key }}
-          Summary: ${{ github.event.client_payload.summary }}
-          Description: ${{ github.event.client_payload.description }}
+          Goal
+          - Implement the Jira ticket exactly. Keep the change minimal and focused.
+
+          Ticket
+          - Key: ${{ github.event.client_payload.issue_key }}
+          - Summary: ${{ github.event.client_payload.summary }}
+          - Description: ${{ github.event.client_payload.description }}
 
           ${CONTEXT}
 
-          Instructions:
-          - Put all frontend code in the ui/ folder
-          - Put all backend code in the api/ folder
-          - Review existing code patterns first
-          - Make minimal, focused changes
-          - Use Tailwind CSS for styling
-          - Ensure code is production-ready
-          - NEVER modify files in .github/ folder (workflows, etc.)
+          Rules (must follow)
+          1) Do NOT modify: .github/, .gitignore, infra/, terraform/, helm/, k8s/, pipelines/, secrets/, *.pem, *.pfx, *.key, *.crt
+          2) Prefer smallest diff. Avoid refactors unless required.
+          3) Follow existing patterns in this repo (naming, folder structure, error handling).
+          4) Add/adjust tests for the change (unit/integration as appropriate).
+          5) If anything is unclear, choose the safest assumption and document it in a code comment.
+          6) Ensure lint and tests pass.
+          7) Use Tailwind CSS for styling in the frontend.
+
+          Process (do this in order)
+          A) Identify relevant files (list them) and briefly explain why.
+          B) Make the change.
+          C) Update/add tests.
+          D) Run the repo checks:
+             - Frontend: npm --prefix ui run lint && npm --prefix ui run build (if ui/ touched)
+             - Backend: dotnet build api/Api.sln && dotnet test api/Api.sln (if api/ touched)
+          E) Summarize what changed + files edited + how to verify.
+
+          Output
+          - Do the work directly in the repo. Do not ask questions. Produce a working implementation.
           PROMPTEOF
 
           claude -p "$(cat /tmp/prompt.txt)" \
