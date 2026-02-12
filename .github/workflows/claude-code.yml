@@ -288,7 +288,7 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           echo "Auto-merge requested (auto-code-deploy label detected)"
-          gh pr merge "${{ env.PR_URL }}" --squash --auto
+          gh pr merge "${{ env.PR_URL }}" --squash --delete-branch
 
       - name: Report no changes
         if: steps.changes.outputs.has_changes == 'false'
