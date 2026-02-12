@@ -13,7 +13,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Welcome to AutoCode Demo</h2>
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">Welcome to AutoCode Ben</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Experience the power of AI-driven development. Get in touch with us to learn more about how we're revolutionizing software creation.
             </p>
