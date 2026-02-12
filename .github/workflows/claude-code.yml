@@ -12,6 +12,9 @@ jobs:
   implement:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    concurrency:
+      group: claude-${{ github.event.client_payload.issue_key }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout
