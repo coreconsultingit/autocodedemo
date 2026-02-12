@@ -54,13 +54,28 @@ jobs:
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
           echo "ISSUE_KEY=$ISSUE_KEY" >> $GITHUB_ENV
 
+      - name: Check for existing PR
+        id: preflight
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING_PR=$(gh pr list --head "${{ env.BRANCH_NAME }}" --json url --jq '.[0].url' 2>/dev/null || true)
+          if [ -n "$EXISTING_PR" ]; then
+            echo "::warning::PR already exists for ${{ env.ISSUE_KEY }}: $EXISTING_PR — skipping Claude Code"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Restore .NET dependencies
+        if: steps.preflight.outputs.skip != 'true'
         run: |
           if [ -f api/Api.sln ]; then
             dotnet restore api/Api.sln
           fi
 
       - name: Build context pack
+        if: steps.preflight.outputs.skip != 'true'
         run: |
           SUMMARY="${{ github.event.client_payload.summary }}"
           DESCRIPTION="${{ github.event.client_payload.description }}"
@@ -119,6 +134,7 @@ jobs:
           cat /tmp/context.md
 
       - name: Run Claude Code
+        if: steps.preflight.outputs.skip != 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
@@ -309,13 +325,11 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           echo "Auto-merge requested (auto-code-deploy label detected)"
-          gh pr merge "${{ steps.pr.outputs.pr_url }}" --squash --auto --delete-branch
+          gh pr merge "${{ steps.pr.outputs.pr_url }}" --squash --delete-branch
 
       - name: Notify Jira - PR merged
         if: steps.changes.outputs.has_changes == 'true' && github.event.client_payload.auto_merge == true && steps.quality.outputs.checks_passed == 'true'
         run: |
-          # Wait briefly for merge to complete
-          sleep 10
           curl -sf -X POST "${{ secrets.ORCHESTRATOR_URL }}/callback/workflow" \
             -H "Content-Type: application/json" \
             -d "{\"issue_key\":\"${{ env.ISSUE_KEY }}\",\"event\":\"pr_merged\",\"pr_url\":\"${{ steps.pr.outputs.pr_url }}\"}" || true
