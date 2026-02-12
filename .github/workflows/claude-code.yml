@@ -273,11 +273,22 @@ jobs:
           *Implemented by Claude Code*
           EOF
 
-          gh pr create \
+          PR_URL=$(gh pr create \
             --title "[${{ env.ISSUE_KEY }}] ${{ github.event.client_payload.summary }}" \
             --body-file /tmp/pr_body.md \
             --base main \
-            $DRAFT_FLAG
+            $DRAFT_FLAG 2>&1)
+
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+          echo "Created PR: $PR_URL"
+
+      - name: Auto-merge PR
+        if: steps.changes.outputs.has_changes == 'true' && github.event.client_payload.auto_merge == true && steps.quality.outputs.checks_passed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Auto-merge requested (auto-code-deploy label detected)"
+          gh pr merge "${{ env.PR_URL }}" --squash --auto
 
       - name: Report no changes
         if: steps.changes.outputs.has_changes == 'false'
