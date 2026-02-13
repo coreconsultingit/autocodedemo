@@ -1,6 +1,6 @@
 describe('Main page', () => {
-  it('should display hello world', () => {
+  it('should display AUT-11', () => {
     cy.visit('/');
-    cy.contains('Hello World');
+    cy.contains('AUT-11');
   });
 });
