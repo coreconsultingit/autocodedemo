@@ -344,12 +344,11 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           echo "Auto-merge requested (auto-code-deploy label detected)"
-          gh pr merge "${{ steps.pr.outputs.pr_url }}" --squash --auto --delete-branch
+          gh pr merge "${{ steps.pr.outputs.pr_url }}" --squash --delete-branch
 
       - name: Notify Jira - PR merged
         if: steps.changes.outputs.has_changes == 'true' && github.event.client_payload.auto_merge == true && steps.quality.outputs.checks_passed == 'true'
         run: |
-          sleep 10
           curl -sf -X POST "${{ secrets.ORCHESTRATOR_URL }}/callback/workflow" \
             -H "Content-Type: application/json" \
             -d "{\"issue_key\":\"${{ env.ISSUE_KEY }}\",\"event\":\"pr_merged\",\"pr_url\":\"${{ steps.pr.outputs.pr_url }}\"}" || true
