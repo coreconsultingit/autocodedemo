@@ -343,6 +343,14 @@ jobs:
           echo "Auto-merge requested (auto-code-deploy label detected)"
           gh pr merge "${{ steps.pr.outputs.pr_url }}" --squash --delete-branch
 
+      - name: Trigger SWA deployment
+        if: steps.changes.outputs.has_changes == 'true' && github.event.client_payload.auto_merge == true && steps.quality.outputs.checks_passed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering Azure Static Web Apps deployment"
+          gh workflow run "Azure Static Web Apps CI/CD" --ref main
+
       - name: Notify Jira - PR merged
         if: steps.changes.outputs.has_changes == 'true' && github.event.client_payload.auto_merge == true && steps.quality.outputs.checks_passed == 'true'
         run: |
