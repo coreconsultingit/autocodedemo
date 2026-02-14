@@ -346,6 +346,7 @@ jobs:
 
       - name: Trigger SWA deployment
         if: steps.changes.outputs.has_changes == 'true' && github.event.client_payload.auto_merge == true && steps.quality.outputs.checks_passed == 'true'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
